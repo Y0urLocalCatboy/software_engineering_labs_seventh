@@ -16,3 +16,8 @@ class DoseLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = DoseLog
         fields = ["id", "medication", "taken_at", "was_taken"]
+
+class ExpectedDosesSerializer(serializers.Serializer):
+    medication_id = serializers.IntegerField()
+    days = serializers.IntegerField()
+    expected_doses = serializers.IntegerField()

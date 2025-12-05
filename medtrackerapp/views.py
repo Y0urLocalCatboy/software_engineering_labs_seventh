@@ -1,9 +1,14 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from django.utils.dateparse import parse_date
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 from .models import Medication, DoseLog
 from .serializers import MedicationSerializer, DoseLogSerializer
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Medication
+from .serializers import ExpectedDosesSerializer
 
 class MedicationViewSet(viewsets.ModelViewSet):
     """
@@ -105,3 +110,53 @@ class DoseLogViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(logs, many=True)
         return Response(serializer.data)
+
+
+class ExpectedDosesView(APIView):
+    """
+    GET /api/medications/<id>/expected-doses/?days=X
+
+    Calculate the expected number of doses for a medication over a given period.
+    """
+
+    def get(self, request, medication_id):
+        # Get the medication or return 404
+        medication = get_object_or_404(Medication, id=medication_id)
+
+        # Validate that days parameter is provided
+        days_param = request.query_params.get('days')
+        if days_param is None:
+            return Response(
+                {"error": "Query parameter 'days' is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate that days is a positive integer
+        try:
+            days = int(days_param)
+            if days < 0:
+                raise ValueError("Days must be a positive integer.")
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid 'days' parameter. Must be a positive integer."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Calculate expected doses
+        try:
+            expected = medication.expected_doses(days)
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Prepare and return the response
+        response_data = {
+            "medication_id": medication.id,
+            "days": days,
+            "expected_doses": expected
+        }
+
+        serializer = ExpectedDosesSerializer(response_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
