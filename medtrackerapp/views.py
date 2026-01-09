@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Medication
 from .serializers import ExpectedDosesSerializer
+from rest_framework.filters import SearchFilter
 
 class MedicationViewSet(viewsets.ModelViewSet):
     """
