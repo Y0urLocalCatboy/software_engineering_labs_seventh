@@ -1,4 +1,3 @@
-import psycopg2
 from django.test import TestCase
 from medtrackerapp.models import Medication, DoseLog
 from django.utils import timezone

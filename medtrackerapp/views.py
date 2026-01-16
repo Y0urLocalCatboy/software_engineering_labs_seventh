@@ -6,10 +6,7 @@ from django.shortcuts import get_object_or_404
 from .models import Medication, DoseLog
 from .serializers import MedicationSerializer, DoseLogSerializer
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Medication
 from .serializers import ExpectedDosesSerializer
-from rest_framework.filters import SearchFilter
 
 class MedicationViewSet(viewsets.ModelViewSet):
     """
