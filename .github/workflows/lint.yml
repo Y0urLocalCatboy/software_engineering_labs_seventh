@@ -1,14 +1,10 @@
-name: OpenAPI docs check
+name: lint.yml
 on:
-  pull_request:
-    branches:
-      - main
+  push:
 
 jobs:
-  docs:
+  ruff:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
@@ -21,13 +17,12 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
-      - name: Generate API documentation
+      - name: Run Ruff linting
         run: |
           source venv/bin/activate
-          python manage.py generateschema --file openapi-schema.yml
-      - name: Check if docs are up to date
+          ruff check . --show-fixes --output-format=github
+      - name: Run Ruff formatting check
         run: |
-          git diff --exit-code openapi-schema.yml
-      env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          source venv/bin/activate
+          ruff format --check --diff .
 

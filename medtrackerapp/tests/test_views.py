@@ -2,15 +2,14 @@ from rest_framework.test import APITestCase
 from medtrackerapp.models import Medication
 from django.urls import reverse
 from rest_framework import status
-from unittest.mock import patch, Mock
-from rest_framework.test import APITestCase
-from medtrackerapp.models import Medication
-from django.urls import reverse
-from rest_framework import status
+from unittest.mock import patch
+
 
 class MedicationViewTests(APITestCase):
     def setUp(self):
-        self.med = Medication.objects.create(name="Aspirin", dosage_mg=100, prescribed_per_day=2)
+        self.med = Medication.objects.create(
+            name="Aspirin", dosage_mg=100, prescribed_per_day=2
+        )
         self.url = reverse("expected-doses", args=[self.med.id])
 
     def test_list_medications_valid_data(self):
@@ -22,30 +21,6 @@ class MedicationViewTests(APITestCase):
         self.assertEqual(response.data[0]["name"], "Aspirin")
         self.assertEqual(response.data[0]["dosage_mg"], 100)
 
-        self.assertEqual(len(response.data), 1)
-    def test_retrieve_medication_valid_id(self):
-        url = reverse("medication-detail", args=[self.med.id])
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Aspirin")
-        self.assertEqual(response.data["dosage_mg"], 100)
-    def test_retrieve_medication_invalid_id(self):
-        url = reverse("medication-detail", args=[999])
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    def test_list_medications_valid_data(self):
-        url = reverse("medication-list")
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["name"], "Aspirin")
-        self.assertEqual(response.data[0]["dosage_mg"], 100)
-
-        self.assertEqual(len(response.data), 1)
-
     def test_retrieve_medication_valid_id(self):
         url = reverse("medication-detail", args=[self.med.id])
         response = self.client.get(url)
@@ -60,21 +35,16 @@ class MedicationViewTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @patch('medtrackerapp.services.DrugInfoService.get_drug_info')
+    @patch("medtrackerapp.services.DrugInfoService.get_drug_info")
     def test_drug_info_api_mocked(self, mock_get_drug_info):
-
-        mock_response = {
-            'name': 'Aspirin',
-            'dosage_mg': 100,
-            'prescribed_per_day': 2
-        }
+        mock_response = {"name": "Aspirin", "dosage_mg": 100, "prescribed_per_day": 2}
         mock_get_drug_info.return_value = mock_response
 
-        url = reverse("medication-detail", kwargs={'pk': self.med.id})
+        url = reverse("medication-detail", kwargs={"pk": self.med.id})
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], 'Aspirin')
+        self.assertEqual(response.data["name"], "Aspirin")
 
     def test_expected_doses_valid_request(self):
         """Test successful request with valid days parameter."""
@@ -128,10 +98,12 @@ class MedicationViewTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @patch.object(Medication, 'expected_doses')
+    @patch.object(Medication, "expected_doses")
     def test_expected_doses_value_error_from_model(self, mock_expected_doses):
         """Test that ValueError from model method returns 400."""
-        mock_expected_doses.side_effect = ValueError("Days and schedule must be positive.")
+        mock_expected_doses.side_effect = ValueError(
+            "Days and schedule must be positive."
+        )
 
         response = self.client.get(self.url, {"days": 5})
 
